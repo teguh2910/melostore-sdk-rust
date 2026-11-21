@@ -1,11 +1,22 @@
 use crate::config::Config;
 use melostore_sdk_rust::{MelostoreClient, MelostoreConfig};
+use serde_json::Value;
+use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Instant;
+use tokio::sync::RwLock;
+
+#[derive(Clone)]
+pub struct CacheEntry {
+    pub value: Value,
+    pub fetched_at: Instant,
+}
 
 #[derive(Clone)]
 pub struct AppState {
     pub client: Arc<MelostoreClient>,
     pub cfg: Arc<Config>,
+    pub cache: Arc<RwLock<HashMap<String, CacheEntry>>>,
 }
 
 impl AppState {
@@ -29,6 +40,7 @@ impl AppState {
         Ok(Self {
             client: Arc::new(client),
             cfg: Arc::new(cfg),
+            cache: Arc::new(RwLock::new(HashMap::new())),
         })
     }
 }
