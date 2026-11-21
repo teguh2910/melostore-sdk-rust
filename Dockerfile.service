@@ -15,7 +15,9 @@ COPY Cargo.lock* ./
 COPY src ./src
 COPY apps ./apps
 
-RUN cargo build --release -p "${SERVICE_BIN}"
+RUN cargo build --release -p "${SERVICE_BIN}" \
+    && cp "target/release/${SERVICE_BIN}" /build-bin \
+    && rm -rf target /usr/local/cargo/registry /usr/local/cargo/git
 
 # ---- runtime ----
 FROM debian:bookworm-slim
@@ -29,7 +31,7 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY --from=builder "/build/target/release/${SERVICE_BIN}" /usr/local/bin/service
+COPY --from=builder /build-bin /usr/local/bin/service
 
 USER 10001:10001
 
