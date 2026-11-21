@@ -80,9 +80,10 @@ pub struct CursorPagination {
 }
 
 /// Product input form instructions and fields.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InquiryForm {
     /// List of input fields required to purchase the product.
+    #[serde(default)]
     pub fields: Vec<InquiryFormField>,
     /// Multilingual instructions and notices.
     #[serde(default)]
@@ -90,16 +91,19 @@ pub struct InquiryForm {
 }
 
 /// Individual input field definition for a product order form.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InquiryFormField {
     /// Field identifier key (e.g. "user_id", "zone_id", "server").
+    #[serde(default)]
     pub key: String,
     /// Display name of the field.
+    #[serde(default)]
     pub name: String,
     /// Input type (e.g. "text", "number", "select").
-    #[serde(rename = "type")]
+    #[serde(default, rename = "type")]
     pub field_type: String,
     /// Whether this field is mandatory.
+    #[serde(default)]
     pub required: bool,
     /// Available options for dropdown/selection fields.
     #[serde(default)]
@@ -110,16 +114,18 @@ pub struct InquiryFormField {
 }
 
 /// Option entry for selectable form fields.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct InquiryFormOption {
     /// Display label.
+    #[serde(default)]
     pub label: String,
     /// Value to submit in the request.
+    #[serde(default)]
     pub value: serde_json::Value,
 }
 
 /// Multilingual instructions for an inquiry form.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct InquiryNotice {
     /// Indonesian instructions.
     #[serde(default)]
@@ -136,16 +142,18 @@ pub fn deserialize_inquiry_forms<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    #[derive(Deserialize)]
-    #[serde(untagged)]
-    #[allow(dead_code)]
-    enum FormsOrEmptyArray {
-        Map(HashMap<String, InquiryForm>),
-        EmptyArray(Vec<serde_json::Value>),
-    }
-
-    match FormsOrEmptyArray::deserialize(deserializer)? {
-        FormsOrEmptyArray::Map(map) => Ok(map),
-        FormsOrEmptyArray::EmptyArray(_) => Ok(HashMap::new()),
+    let val = serde_json::Value::deserialize(deserializer)?;
+    match val {
+        serde_json::Value::Object(map) => {
+            let mut result = HashMap::new();
+            for (k, v) in map {
+                if let Ok(form) = serde_json::from_value::<InquiryForm>(v) {
+                    result.insert(k, form);
+                }
+            }
+            Ok(result)
+        }
+        serde_json::Value::Array(_) => Ok(HashMap::new()),
+        _ => Ok(HashMap::new()),
     }
 }

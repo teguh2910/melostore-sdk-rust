@@ -14,6 +14,7 @@ async fn spawn_test_server(mock_base_url: &str) -> (SocketAddr, tokio::task::Joi
         webhook_secret: Some("test_secret".to_string()),
         base_url: Some(mock_base_url.to_string()),
         sandbox_mode: true,
+        mock_mode: false,
         cors_origin: "*".to_string(),
     };
 
