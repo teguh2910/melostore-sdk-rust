@@ -8,6 +8,7 @@ pub struct Config {
     pub webhook_secret: Option<String>,
     pub base_url: Option<String>,
     pub sandbox_mode: bool,
+    pub mock_mode: bool,
     pub cors_origin: String,
 }
 
@@ -27,6 +28,11 @@ impl Config {
         let sandbox_mode = env::var("MELOSTORE_SANDBOX")
             .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
             .unwrap_or(true);
+        let mock_mode = env::var("MELOSTORE_MOCK")
+            .map(|v| v.eq_ignore_ascii_case("true") || v == "1")
+            .unwrap_or_else(|_| {
+                api_key.is_empty() || api_key == "sandbox_api_key" || api_key.starts_with("sandbox")
+            });
         let cors_origin = env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".to_string());
 
         Ok(Self {
@@ -36,6 +42,7 @@ impl Config {
             webhook_secret,
             base_url,
             sandbox_mode,
+            mock_mode,
             cors_origin,
         })
     }

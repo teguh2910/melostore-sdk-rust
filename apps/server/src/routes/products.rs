@@ -19,6 +19,10 @@ pub async fn get_products(
     State(state): State<AppState>,
     Query(query): Query<ProductQuery>,
 ) -> Result<Json<Value>, AppError> {
+    if state.cfg.mock_mode {
+        return Ok(Json(crate::mock::get_mock_catalogue(None)));
+    }
+
     let params = PricelistParams {
         cursor: query.cursor,
         limit: query.limit.or(Some(500)),
@@ -37,6 +41,10 @@ pub async fn get_products_by_category(
     Path(brand_slug): Path<String>,
     Query(query): Query<ProductQuery>,
 ) -> Result<Json<Value>, AppError> {
+    if state.cfg.mock_mode {
+        return Ok(Json(crate::mock::get_mock_catalogue(Some(&brand_slug))));
+    }
+
     let params = PricelistParams {
         cursor: query.cursor,
         limit: query.limit.or(Some(500)),

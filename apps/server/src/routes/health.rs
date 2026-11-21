@@ -3,6 +3,9 @@ use axum::{extract::State, Json};
 use serde_json::{json, Value};
 
 pub async fn health_handler(State(state): State<AppState>) -> Json<Value> {
+    if state.cfg.mock_mode {
+        return Json(crate::mock::get_mock_health());
+    }
     match state.client.get_balance().await {
         Ok(bal) => Json(json!({
             "status": "ok",

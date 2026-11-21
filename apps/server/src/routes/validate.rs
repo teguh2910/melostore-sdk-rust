@@ -28,6 +28,13 @@ pub async fn validate_account(
 
     let customer_target_zone = payload.customer_target_zone.or(payload.zone);
 
+    if state.cfg.mock_mode {
+        return Ok(Json(crate::mock::validate_mock_account(
+            &customer_target,
+            customer_target_zone.as_deref(),
+        )));
+    }
+
     let mut req = CheckNicknameRequest::new(game_code, customer_target);
     req.customer_target_zone = customer_target_zone;
 

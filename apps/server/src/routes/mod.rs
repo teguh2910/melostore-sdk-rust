@@ -35,6 +35,14 @@ pub fn router(state: AppState) -> Router {
         .route("/health", get(health::health_handler))
         .nest("/api/v1", api)
         .layer(cors)
-        .layer(TraceLayer::new_for_http())
+        .layer(
+            TraceLayer::new_for_http().on_failure(
+                |error: tower_http::classify::ServerErrorsFailureClass,
+                 latency: std::time::Duration,
+                 _span: &tracing::Span| {
+                    tracing::warn!(classification = %error, ?latency, "response failed");
+                },
+            ),
+        )
         .with_state(state)
 }

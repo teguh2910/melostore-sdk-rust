@@ -42,6 +42,14 @@ pub async fn create_order(
         .or(payload.ref_id)
         .ok_or_else(|| AppError::BadRequest("Field 'buyer_trx_id' is required".into()))?;
 
+    if state.cfg.mock_mode {
+        return Ok(Json(crate::mock::create_mock_order(
+            &buyer_trx_id,
+            &sku_code,
+            &customer_target,
+        )));
+    }
+
     let customer_target_zone = payload.customer_target_zone.or(payload.target_zone);
 
     let mut req = CreateTransactionRequest::new(sku_code, customer_target, buyer_trx_id);
@@ -59,6 +67,10 @@ pub async fn get_order_status(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<Json<Value>, AppError> {
+    if state.cfg.mock_mode {
+        return Ok(Json(crate::mock::get_mock_order_status(&id)));
+    }
+
     let trx = state.client.get_transaction(&id).await?;
     let val = serde_json::to_value(trx).map_err(|e| AppError::Internal(e.to_string()))?;
     Ok(Json(val))

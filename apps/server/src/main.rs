@@ -22,6 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         bind = %bind_addr,
         base_url = cfg.base_url.as_deref().unwrap_or("https://api.melostore.id"),
         sandbox = cfg.sandbox_mode,
+        mock = cfg.mock_mode,
         "starting melostore-server (stateless order & product gateway)"
     );
 
